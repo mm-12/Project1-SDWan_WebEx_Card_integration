@@ -20,7 +20,7 @@ class Authentication:
         
         print(url," ",payload)
         response = requests.post(url=url, data=payload, verify=False)
-
+        print (response)
         try:
             cookies = response.headers["Set-Cookie"]
             jsessionid = cookies.split(";")

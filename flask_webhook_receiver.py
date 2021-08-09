@@ -63,23 +63,25 @@ def index():
                             if value=="true":
                                 print("bingo", key)
                                 if key=="0":
-                                    print("checkl")
-                                    poruka+=sdwan.show_users(header)
+                                    poruka=sdwan.show_users(header)
+                                    msg.post_message_card_output(roomId,poruka,"show users")
                                 elif key=="1":
-                                    poruka+=sdwan.show_devices(header)
+                                    poruka=sdwan.show_devices(header)
+                                    msg.post_message_card_output(roomId,poruka,"show devices")
                                 elif key=="2":
-                                    poruka+=sdwan.show_controllers(header)
+                                    poruka=sdwan.show_controllers(header)
+                                    msg.post_message_card_output(roomId,poruka,"show controllers")
                                 elif key=="3":
-                                    poruka+=sdwan.show_vedges(header)
+                                    poruka=sdwan.show_vedges(header)
+                                    msg.post_message_card_output(roomId,poruka,"show vedges")
                         
                         # Logout from SDWAN
                         sdwan.logout(header)
 
                         if poruka == "":
                             poruka="None of the options selected. Try again!"
-
-                        # Post a finall notification to webex teams 
-                        msg.post_message_roomId(roomId,poruka)
+                            msg.post_message_roomId(roomId,poruka)
+                       
                         
                     else:
                         msg.get_txt_message(messageId)
@@ -90,7 +92,7 @@ def index():
 
                         # If Hello is sent, show the cards
                         if "hello" in msg.message_text.lower():
-                            msg.post_message_card(roomId,"Card")
+                            msg.post_message_card_input(roomId,"Card")
                         else:
                             msg.post_message_roomId(roomId,"Type hello to start")
                     
