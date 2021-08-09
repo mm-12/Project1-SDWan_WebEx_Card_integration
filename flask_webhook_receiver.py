@@ -109,11 +109,11 @@ def index():
             return ('CURL request')
 
 
-def create_webhook(url):
+def create_webhook(url,resource):
     webhooks_api = f'{msg.base_url}/webhooks'
     data = { 
-        "name": "Webhook to ChatBot",
-        "resource": "messages",
+        "name": f"Webhook to ChatBot - {resource}",
+        "resource": resource,
         "event": "created",
         "targetUrl": f"{url}"
         }
@@ -121,32 +121,49 @@ def create_webhook(url):
     if webhook.status_code != 200:
         webhook.raise_for_status()
     else:
-        print(f'Webhook to {url} created')
+        print(f'Webhook to {url} created for ChatBot - {resource}')
+
 
 def get_webhook_urls():
-    webhook_urls = []
+    webhook_urls_res = []
     webhooks_api = f'{msg.base_url}/webhooks'
     webhooks = requests.get(webhooks_api, headers=msg.headers)
     if webhooks.status_code != 200:
             webhooks.raise_for_status()
     else:
         for webhook in webhooks.json()['items']:
-            webhook_urls.append(webhook['targetUrl'])
-    return webhook_urls
+            webhook_urls_res.append((webhook['targetUrl'],webhook['resource']))
+    return webhook_urls_res
 
-ngrok_url=["http://87780dcb5385.eu.ngrok.io"]
+ngrok_url="http://87780dcb5385.eu.ngrok.io"
+ngrok_url_msg=[(ngrok_url,"messages")]
+ngrok_url_att=[(ngrok_url,"attachmentActions")]
 
 webhook_urls = get_webhook_urls()
 
-print (webhook_urls)
-print (ngrok_url)
-intersect = list(set(ngrok_url) & set(webhook_urls))
 
-print (intersect)
-if intersect:
-    print(f'Registered webhook: {intersect[0]}')
+print ("set msg: ", set(ngrok_url_msg))
+print ("set att: ", set(ngrok_url_att))
+print ("set urls: ", set(webhook_urls))
+
+intersect_msg = list(set(ngrok_url_msg) & set(webhook_urls))
+intersect_att = list(set(ngrok_url_att) & set(webhook_urls))
+
+print ("intersect_msg: ",intersect_msg)
+
+print ("intersect_att: ",intersect_att)
+
+
+if intersect_msg:
+    print(f'Registered webhook for Nsg: {intersect_msg[0]}')
 else: 
-    create_webhook(ngrok_url[0])
+    create_webhook(ngrok_url, "messages")
+
+if intersect_att:
+    print(f'Registered webhook for Att: {intersect_att[0]}')
+else: 
+    create_webhook(ngrok_url, "attachmentActions")
+
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=port, debug=True)
