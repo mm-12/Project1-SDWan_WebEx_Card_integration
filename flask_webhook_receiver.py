@@ -27,59 +27,117 @@ def index():
                     
                     if msg.bot_id == data.get('data').get('personId'):
                         return 'Message from self ignored'
+                    
                     # Collect the roomId from the notification,
                     # so you know where to post the response
                     roomId=data.get('data').get('roomId')
                     print("Room ID: ",roomId)
-                    print("Person ID ------ ",data.get('data').get('personId'))
+                    print("Person ID ",data.get('data').get('personId'))
                     print("Raw msg: ",data.get('data'))
+                    
                     # Collect the message id from the notification, 
-                    # so you can fetch the message content
+                    # so you can fetch the message content or card content
                     messageId=data.get('data').get('id')
                     print("Message ID: ",messageId)
-                    # Get the contents of the received message.
+                    
+                    # Get the type of the received message.
                     msg_type=data.get('data').get('type')
+                    
+                    # None for msg and submit for Card
                     print("MSG type: ",msg_type)
-                    msg.get_message(messageId,msg_type)
-                    print("This is the msg content got from webhook: ",msg.message_text)
+                    
+                    # Get the content of the received message or card submitted.
+                    if msg_type=="submit":
+                        msg.get_submit_message(messageId)
+                        print("This is the submit content got from the webhook: ",msg.message_text)
+                        print("this is the type of the submit got from the webhook: ", type(msg.message_text))
+                        
+                        # Login to SDWAN and get proper header 
+                        header=sdwan.login()
 
-                    if data.get('data').get('personId') == "Y2lzY29zcGFyazovL3VzL1BFT1BMRS85ZjRhZTNlNC0xMjY4LTRkODctYjE4ZS1lMzMwOTVmNDViYWQ":
-                        poruka = "Igor thank you, you are such a wonderful bot... like real SNS bot "
+                        # Final notification to send to as a response to webex teams
+                        poruka = ""
+
+                        for key,value in msg.message_text.items():
+                            print(key, value)
+                            if value=="true":
+                                print("bingo", key)
+                                if key=="0":
+                                    print("checkl")
+                                    poruka+=sdwan.show_users(header)
+                                elif key=="1":
+                                    poruka+=sdwan.show_devices(header)
+                                elif key=="2":
+                                    poruka+=sdwan.show_controllers(header)
+                                elif key=="3":
+                                    poruka+=sdwan.show_vedges(header)
+                        
+                        # Logout from SDWAN
+                        sdwan.logout(header)
+
+                        if poruka == "":
+                            poruka="None of the options selected. Try again!"
+
+                        # Post a finall notification to webex teams 
                         msg.post_message_roomId(roomId,poruka)
-                        return data
+                        
+                    else:
+                        msg.get_txt_message(messageId)
+                        print("This is the msg content got from the webhook: ",msg.message_text)
+                        print("this is the type of the msg got from the webhook: ", type(msg.message_text))
+
+                    
+
+                        # If Hello is sent, show the cards
+                        if "hello" in msg.message_text.lower():
+                            msg.post_message_card(roomId,"Card")
+                        else:
+                            msg.post_message_roomId(roomId,"Type hello to start")
+                    
+                
+
+                    '''
+                    # Login to SDWAN and get proper header 
                     header=sdwan.login()
 
+                    # Final notification to send to as a response to webex teams
                     poruka = ""
             
-                    # If message starts with '/xxxxx', relay it to the web server.
-                    # If not, just post a confirmation that a message was received.
+                    # If message received from webex teams has any of supported commands, call sdwan specific func.
                     if "show users" in msg.message_text:
-                        poruka=poruka+sdwan.show_users(header)
+                        poruka+=sdwan.show_users(header)
                     if "show devices" in msg.message_text:
-                        poruka=poruka+sdwan.show_devices(header)
+                        poruka+=sdwan.show_devices(header)
                     if "show controllers" in msg.message_text:
-                        poruka=poruka+sdwan.show_controllers(header)
+                        poruka+=sdwan.show_controllers(header)
                     if "show vedges" in msg.message_text:
-                        poruka=poruka+sdwan.show_vedges(header)
+                        poruka+=sdwan.show_vedges(header)
                     
+                    # Regex to check IPs (check python library for this too)
                     ips=re.findall(r"show bfd (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})", msg.message_text)
-                    print(ips)
+                    print("if ip found in show bfd", ips)
                     if ips:
                         for ip in ips:
-                            poruka=poruka+sdwan.show_bfd(header,ip)
-
+                            poruka+=sdwan.show_bfd(header,ip)
+                    
+                    # Regex to check IPs (check python library for this too)
                     ips=re.findall(r"show ipsec (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})", msg.message_text)
-                    print(ips)
+                    print("if ip found in show ipsec", ips)
+
                     if ips:
                         for ip in ips:
-                            poruka=poruka+sdwan.show_ipsec(header,ip)
+                            poruka+=sdwan.show_ipsec(header,ip)
 
+                    # If finall notification is still empty, it means that unsupported command was issued. Generate generic msg
                     if poruka == "":
                         poruka="Supported commands are: show users, show devices, show controllers, show vedges, show bfd <IP>, show ipsec <IP>"
 
+                    # Logout from SDWAN
                     sdwan.logout(header)
+                    
+                    # Post a finall notification to webex teams 
                     msg.post_message_roomId(roomId,poruka)
-                
+                    '''
                 else:
                     #we got POST from SDWAN
                     print("post sa SDWAN")

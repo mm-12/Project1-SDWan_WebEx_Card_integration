@@ -18,7 +18,7 @@ class Authentication:
         url = base_url + api
         payload = {'j_username' : vmanage_username, 'j_password' : vmanage_password}
         
-        
+        print(url," ",payload)
         response = requests.post(url=url, data=payload, verify=False)
 
         try:
@@ -54,6 +54,9 @@ vmanage_port = os.environ.get("vmanage_port")
 vmanage_username = os.environ.get("vmanage_username")
 vmanage_password = os.environ.get("vmanage_password")
 
+print("url ", vmanage_host)
+print("user ", vmanage_username)
+print("pass ", vmanage_password)
 base_url = f"https://{vmanage_host}:{vmanage_port}/dataservice"
 
 api_logout_url = "/logout?nocache=1234"
