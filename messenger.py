@@ -10,6 +10,7 @@ api_key = 'NmVkYzY3ZmEtYmIwYi00MGEwLWI5YmEtNzQ3ZmQyZTFlNjFlMTRkMjA4MjEtOTBj_PF84
 base_url = 'https://webexapis.com/v1'
 
 class Messenger():
+    # When init Messanger class prepare url, key, headers, bot_id
     def __init__(self, base_url=base_url, api_key=api_key):
         self.base_url = base_url
         self.api_key = api_key
@@ -19,64 +20,53 @@ class Messenger():
         }
         self.bot_id = requests.get(f'{self.base_url}/people/me', headers=self.headers).json().get('id')
 
-    def get_txt_message(self, message_id):
-        """ Retrieve a specific message, specified by message_id """
-        print(f'MESSAGE ID: {message_id}')
- 
+
+    # RETRIVE A MESSAGE
+    # Retrieve a specific message posted by user -> str, using message_id
+    def get_txt_message(self, message_id): 
         received_message_url = f'{self.base_url}/messages/{message_id}'
         self.message_text = requests.get(received_message_url, headers=self.headers).json().get('text')
-        
-    def get_submit_message(self, message_id):
-        """ Retrieve a specific message, specified by message_id """
-        print(f'MESSAGE ID: {message_id}')
-        
+
+    # Retrieve a specific card submitted by  user -> dict, using message_id
+    def get_card_message(self, message_id):
         received_message_url = f'{self.base_url}/attachment/actions/{message_id}'
-        print(received_message_url)
-        resp=requests.get(received_message_url, headers=self.headers)
-        print(resp.json())
-        self.message_text = resp.json().get('inputs')
-        print(self.message_text)
+        self.message_text =requests.get(received_message_url, headers=self.headers).json().get('inputs')
       
-       
-
-
+    
+    # POST A MESSAGE
+    # Post a message to a Webex Teams space (to email address send a message)
     def post_message_email(self, person_email, message):
-        """ Post message to a Webex Teams space, specified by room_id """
         data = {
             "toPersonEmail": person_email,
             "text": message,
             }
         post_message_url = f'{self.base_url}/messages'
-        post_message = requests.post(post_message_url,headers=self.headers,data=json.dumps(data))
-        print("raw reposnse when posting msg: ",json.dumps(post_message.json(),indent=4))
+        requests.post(post_message_url,headers=self.headers,data=json.dumps(data))
 
+    # Post a message to a Webex Teams space (to roomId send a message)
     def post_message_roomId(self, room_id, message):
-        """ Post message to a Webex Teams space, specified by room_id """
-
         data = {
             "roomId": room_id,
             "text": message,
             } 
         post_message_url = f'{self.base_url}/messages'
-        post_message = requests.post(post_message_url,headers=self.headers,data=json.dumps(data))
-        print("raw reposnse when posting msg: ",json.dumps(post_message.json(),indent=4))
+        requests.post(post_message_url,headers=self.headers,data=json.dumps(data))
 
+    # Post a card to a Webex Teams space (to roomID post an input card)
     def post_message_card_input(self, room_id, message):
-        """ Post a card to a Webex Teams space, specified by room_id """
-
         data = {
             "roomId": room_id,
             "text": message,
             "attachments": card_input
             } 
         post_message_url = f'{self.base_url}/messages'
-        post_message = requests.post(post_message_url,headers=self.headers,data=json.dumps(data))
-        print("raw reposnse when posting msg: ",json.dumps(post_message.json(),indent=4))
+        requests.post(post_message_url,headers=self.headers,data=json.dumps(data))
 
+    #Post a card to a Webex Teams space (to roomID post an output card/result card)
     def post_message_card_output(self, room_id, message, command):
-        """ Post a card to a Webex Teams space, specified by room_id """
-
+        # Output card location of a command
         card_output[0]['content']['body'][0]['columns'][1]['items'][1]['text']=command
+        # Output card location of an output to print
         card_output[0]['content']['body'][1]['text']=message
         data = {
             "roomId": room_id,
@@ -84,5 +74,4 @@ class Messenger():
             "attachments": card_output
             } 
         post_message_url = f'{self.base_url}/messages'
-        post_message = requests.post(post_message_url,headers=self.headers,data=json.dumps(data))
-        print("raw reposnse when posting msg: ",json.dumps(post_message.json(),indent=4))
+        requests.post(post_message_url,headers=self.headers,data=json.dumps(data))

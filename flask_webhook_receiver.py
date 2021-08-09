@@ -1,13 +1,16 @@
 from flask import Flask, request, json
 import requests
 from messenger import Messenger
-import sdwan
+#import sdwan
 import re
+from sdwan import Sdwan
 
 app = Flask(__name__)
 port = 5005
+
 msg = Messenger()
 person_emails = ["mmiletic@cisco.com", "wdaar@cisco.com"]
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -48,40 +51,37 @@ def index():
                     
                     # Get the content of the received message or card submitted.
                     if msg_type=="submit":
-                        msg.get_submit_message(messageId)
+                        msg.get_card_message(messageId)
                         print("This is the submit content got from the webhook: ",msg.message_text)
                         print("this is the type of the submit got from the webhook: ", type(msg.message_text))
                         
-                        # Login to SDWAN and get proper header 
-                        header=sdwan.login()
 
                         # Final notification to send to as a response to webex teams
                         poruka = ""
 
+                        sd = Sdwan()
+
                         for key,value in msg.message_text.items():
-                            print(key, value)
                             if value=="true":
-                                print("bingo", key)
                                 if key=="0":
-                                    poruka=sdwan.show_users(header)
+                                    poruka=sd.show_users()
                                     msg.post_message_card_output(roomId,poruka,"show users")
                                 elif key=="1":
-                                    poruka=sdwan.show_devices(header)
+                                    poruka=sd.show_devices()
                                     msg.post_message_card_output(roomId,poruka,"show devices")
                                 elif key=="2":
-                                    poruka=sdwan.show_controllers(header)
+                                    poruka=sd.show_controllers()
                                     msg.post_message_card_output(roomId,poruka,"show controllers")
                                 elif key=="3":
-                                    poruka=sdwan.show_vedges(header)
+                                    poruka=sd.show_vedges()
                                     msg.post_message_card_output(roomId,poruka,"show vedges")
                         
-                        # Logout from SDWAN
-                        sdwan.logout(header)
 
                         if poruka == "":
                             poruka="None of the options selected. Try again!"
                             msg.post_message_roomId(roomId,poruka)
                        
+                        sd.logout()
                         
                     else:
                         msg.get_txt_message(messageId)
