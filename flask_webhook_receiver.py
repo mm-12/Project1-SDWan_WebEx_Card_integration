@@ -9,7 +9,6 @@ port = 5005
 msg = Messenger()
 person_emails = ["mmiletic@cisco.com", "wdaar@cisco.com"]
 
-
 @app.route('/', methods=['GET', 'POST'])
 def index():
     """Receive a notification from XXXXXX and handle it"""
@@ -155,7 +154,7 @@ print ("intersect_att: ",intersect_att)
 
 
 if intersect_msg:
-    print(f'Registered webhook for Nsg: {intersect_msg[0]}')
+    print(f'Registered webhook for Msg: {intersect_msg[0]}')
 else: 
     create_webhook(ngrok_url, "messages")
 
