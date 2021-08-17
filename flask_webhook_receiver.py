@@ -4,169 +4,211 @@ from messenger import Messenger
 #import sdwan
 import re
 from sdwan import Sdwan
+from jinja2 import Template
+
 
 app = Flask(__name__)
 port = 5005
 
 msg = Messenger()
-person_emails = ["mmiletic@cisco.com", "wdaar@cisco.com"]
+person_emails = ["mmiletic@cisco.com"]
 
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    """Receive a notification from XXXXXX and handle it"""
-    if request.method == 'GET':
-        return(f'This GET request received on local port {port}')
-    elif request.method == 'POST':
-        if 'Content-Type' in request.headers:
-            if 'application/json' in request.headers.get('Content-Type'):
-                # Notification payload, received from XXXX webhook. Assuming there are all these fields below
-                data = request.get_json()
+    if request.method == 'POST' and 'Content-Type' in request.headers and 'application/json' in request.headers.get('Content-Type'):
+        # Notification payload, received from XXXX webhook. Assuming there are all these fields below
+        data = request.get_json()
                 
-                # Determine if POST came from SDWAN or WEBEX teams.
-                if "data" in data:
-                    #we got POST from Webex teams
-                    print("post from webex teams")
-                    
-                    if msg.bot_id == data.get('data').get('personId'):
-                        return 'Message from self ignored'
-                    
-                    # Collect the roomId from the notification,
-                    # so you know where to post the response
-                    roomId=data.get('data').get('roomId')
-                    print("Room ID: ",roomId)
-                    print("Person ID ",data.get('data').get('personId'))
-                    print("Raw msg: ",data.get('data'))
-                    
-                    # Collect the message id from the notification, 
-                    # so you can fetch the message content or card content
-                    messageId=data.get('data').get('id')
-                    print("Message ID: ",messageId)
-                    
-                    # Get the type of the received message.
-                    msg_type=data.get('data').get('type')
-                    
-                    # None for msg and submit for Card
-                    print("MSG type: ",msg_type)
-                    
-                    # Get the content of the received message or card submitted.
-                    if msg_type=="submit":
-                        msg.get_card_message(messageId)
-                        print("This is the submit content got from the webhook: ",msg.message_text)
-                        print("this is the type of the submit got from the webhook: ", type(msg.message_text))
-                        
+        # Determine if POST came from SDWAN or WEBEX teams.
+        if "data" in data:
+            #we got POST from Webex teams
+            print("post from webex teams")
 
-                        # Final notification to send to as a response to webex teams
-                        poruka = ""
+            if msg.bot_id == data.get('data').get('personId'):
+                return 'Message from self ignored'
 
-                        sd = Sdwan()
+            # Collect the roomId from the notification,
+            # so you know where to post the response
+            roomId=data.get('data').get('roomId')
+            print("Room ID: ",roomId)
+            print("Person ID ",data.get('data').get('personId'))
+            print("Raw msg: ",data.get('data'))
 
-                        for key,value in msg.message_text.items():
-                            if value=="true":
-                                if key=="0":
-                                    poruka=sd.show_users()
-                                    msg.post_message_card_output(roomId,poruka,"show users")
-                                elif key=="1":
-                                    poruka=sd.show_devices()
-                                    msg.post_message_card_output(roomId,poruka,"show devices")
-                                elif key=="2":
-                                    poruka=sd.show_controllers()
-                                    msg.post_message_card_output(roomId,poruka,"show controllers")
-                                elif key=="3":
-                                    poruka=sd.show_vedges()
-                                    msg.post_message_card_output(roomId,poruka,"show vedges")
-                        
-
-                        if poruka == "":
-                            poruka="None of the options selected. Try again!"
-                            msg.post_message_roomId(roomId,poruka)
-                       
-                        sd.logout()
-                        
-                    else:
-                        msg.get_txt_message(messageId)
-                        print("This is the msg content got from the webhook: ",msg.message_text)
-                        print("this is the type of the msg got from the webhook: ", type(msg.message_text))
-
-                    
-
-                        # If Hello is sent, show the cards
-                        if "hello" in msg.message_text.lower():
-                            msg.post_message_card_input(roomId,"Card")
-                        else:
-                            msg.post_message_roomId(roomId,"Type hello to start")
-                    
-                
-
-                    '''
-                    # Login to SDWAN and get proper header 
-                    header=sdwan.login()
-
-                    # Final notification to send to as a response to webex teams
-                    poruka = ""
+            # Collect the message id from the notification, 
+            # so you can fetch the message content or card content
+            messageId=data.get('data').get('id')
+            print("Message ID: ",messageId)
             
-                    # If message received from webex teams has any of supported commands, call sdwan specific func.
-                    if "show users" in msg.message_text:
-                        poruka+=sdwan.show_users(header)
-                    if "show devices" in msg.message_text:
-                        poruka+=sdwan.show_devices(header)
-                    if "show controllers" in msg.message_text:
-                        poruka+=sdwan.show_controllers(header)
-                    if "show vedges" in msg.message_text:
-                        poruka+=sdwan.show_vedges(header)
-                    
-                    # Regex to check IPs (check python library for this too)
-                    ips=re.findall(r"show bfd (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})", msg.message_text)
-                    print("if ip found in show bfd", ips)
-                    if ips:
-                        for ip in ips:
-                            poruka+=sdwan.show_bfd(header,ip)
-                    
-                    # Regex to check IPs (check python library for this too)
-                    ips=re.findall(r"show ipsec (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})", msg.message_text)
-                    print("if ip found in show ipsec", ips)
-
-                    if ips:
-                        for ip in ips:
-                            poruka+=sdwan.show_ipsec(header,ip)
-
-                    # If finall notification is still empty, it means that unsupported command was issued. Generate generic msg
-                    if poruka == "":
-                        poruka="Supported commands are: show users, show devices, show controllers, show vedges, show bfd <IP>, show ipsec <IP>"
-
-                    # Logout from SDWAN
-                    sdwan.logout(header)
-                    
-                    # Post a finall notification to webex teams 
-                    msg.post_message_roomId(roomId,poruka)
-                    '''
-                else:
-                    #we got POST from SDWAN
-                    print("post sa SDWAN")
+            # Get the type of the received message.
+            msg_type=data.get('data').get('type')
+            
+            # None for msg and submit for Card
+            print("MSG type: ",msg_type)
+            
+            # Get the content of the received message or card submitted.
+            if msg_type=="submit":
+                # message received is card message
+                msg.get_card_message(messageId)
+                print("This is the submit content got from the webhook: ",msg.message_text)
+                print("this is the type of the submit got from the webhook: ", type(msg.message_text))
                 
-                    severity=data["severity"]
-                    message=data["message"]
-                    component=data["consumed_events"][0]["component"]
-                    system_ip=data["consumed_events"][0]["system-ip"]
-                    hostname=data["consumed_events"][0]["host-name"]
-                    vpn_id=data["consumed_events"][0]["vpn-id"]
-                    # Print the notification payload, received from the webhook
-                    print(json.dumps(data,indent=4))
-                    #msg_text = "We got POST from SDWAN"
-                    msg_text=f"Severity: {severity} from hosname: {hostname} with IP: {system_ip} and VPN ID: {vpn_id}, on COMPONENT: {component} with the message:\n{message}"
-                    for person_email in person_emails:
-                        msg.post_message_email(person_email, msg_text)
+                # need to check which button was pressed and based on that to show coresponding card
 
-                return  data
+                print("PRITISNUTO JE: ", msg.message_text)
 
-            else: 
-                return ('Wrong data format', 400)
+                
+                if "main" in msg.message_text:
+                    # Main menu card
+                    if msg.message_text['button']=="new_network":
+                        # Button new network
+                        msg.post_message_card_input(roomId,"Card for new network", card("01_card_newNetwork.json"))
+                    elif msg.message_text['button']=="show":
+                        # Button show
+                        msg.post_message_card_input(roomId,"Card for show commands", card("02_card_show.json"))
+                    elif msg.message_text['button']=="backup":
+                        # Button backup
+                        msg.post_message_card_input(roomId,"Card for backup", card("03_card_backup.json"))
+
+                elif "newnetwork" in msg.message_text:
+                    # New network card
+                    if msg.message_text['network']=="11":
+                        # option 11
+                        
+                        vard={"var1": "Option 11 selected", "var2": "some output for option 11", \
+                            "colour1": "Accent","colour2": "Good","colour3": "Dark"}
+
+                        msg.post_message_card_output(roomId,"option 11", card("10_card_output_generic.json",vard))
+
+                        print("izabrana opcija 11")
+                    elif msg.message_text['network']=="22":
+                        # option 22
+
+                        vard={"var1": "Option 22 selected", "var2": "some output for option 22", \
+                            "colour1": "Accent","colour2": "Good","colour3": "Dark"}
+
+                        msg.post_message_card_output(roomId,"option 22", card("10_card_output_generic.json",vard))
+                        print("izabrana opcija 22")
+                    else:
+                        print("Network not selected!")
+                        
+                        vard={"var1": "Nothing selected", "var2": "Please select at least one network", \
+                            "colour1": "Attention","colour2": "Attention","colour3": "Attention"}
+
+                        msg.post_message_card_output(roomId,"Nothing selected", card("10_card_output_generic.json",vard))
+
+
+                elif "show" in msg.message_text:
+                    # Show card
+                    sd = Sdwan()
+                    none_selected=True
+
+                    if msg.message_text['show_users']=="true":
+                        # show user = True 
+
+                        vard={"var1": "Show user option selected", "var2": sd.show_users(), \
+                            "colour1": "Accent","colour2": "Good","colour3": "Dark"}
+                        
+                        msg.post_message_card_output(roomId,sd.show_users(),card("10_card_output_generic.json",vard))
+
+                        print("izabrana opcija show users")
+                        none_selected=False
+                    
+                    if msg.message_text['show_devices']=="true":
+                        # show devices = True
+
+                        vard={"var1": "Show devices option selected", "var2": sd.show_devices(), \
+                            "colour1": "Accent","colour2": "Good","colour3": "Dark"}
+
+                        msg.post_message_card_output(roomId,sd.show_devices(),card("10_card_output_generic.json",vard))
+
+                        print("izabrana opcija show devices")
+                        none_selected=False
+
+                    if msg.message_text['show_controllers']=="true":
+                        # show controllers = True
+
+                        vard={"var1": "Show controllers option selected", "var2": sd.show_controllers(), \
+                            "colour1": "Accent","colour2": "Good","colour3": "Dark"}
+
+                        msg.post_message_card_output(roomId,sd.show_controllers(),card("10_card_output_generic.json",vard))
+
+                        print("izabrana opcija show controllers")
+                        none_selected=False
+                    
+                    if none_selected:
+                        # Nothing selected
+
+                        print("Nothing selected")
+
+                        vard={"var1": "None selected", "var2": "None of the show options selected. Please select at least one show output!", \
+                            "colour1": "Attention","colour2": "Attention","colour3": "Attention"}
+
+                        msg.post_message_card_output(roomId,sd.show_controllers(),card("10_card_output_generic.json",vard))
+
+
+
+                elif "backup" in msg.message_text:
+                    # Backup card
+                    
+                    
+                    vard={"var1": "Backup option selected", "var2": "Backup is starting!!!", \
+                        "colour1": "Accent","colour2": "Good","colour3": "Dark"}
+
+                    msg.post_message_card_output(roomId,"backup",card("10_card_output_generic.json",vard))
+
+                    print("start backup")
+                    
+                
+            else:
+                # message received is text message
+                msg.get_txt_message(messageId)
+                print("This is the msg content got from the webhook: ",msg.message_text)
+                print("this is the type of the msg got from the webhook: ", type(msg.message_text))
+
+            
+                # If Hello is sent, show the cards
+                if "hello" in msg.message_text.lower():
+                    msg.post_message_card_input(roomId,"Card for main manu", card("00_card_menu.json"))
+                else:
+                    msg.post_message_roomId(roomId,"Type hello to start")           
         else:
-            msg_text = "We got POST from curl"
+            #we got POST from SDWAN
+            print("post sa SDWAN")
+        
+            severity=data["severity"]
+            message=data["message"]
+            component=data["consumed_events"][0]["component"]
+            system_ip=data["consumed_events"][0]["system-ip"]
+            hostname=data["consumed_events"][0]["host-name"]
+            vpn_id=data["consumed_events"][0]["vpn-id"]
+            # Print the notification payload, received from the webhook
+            print(json.dumps(data,indent=4))
+            #msg_text = "We got POST from SDWAN"
+            msg_text=f"Severity: {severity} from hosname: {hostname} with IP: {system_ip} and VPN ID: {vpn_id}, on COMPONENT: {component} with the message:\n{message}"
             for person_email in person_emails:
                 msg.post_message_email(person_email, msg_text)
-            return ('CURL request')
 
+        return data
+
+    else: 
+        msg_text = "We got GET or POST from CURL or something is wrong"
+        for person_email in person_emails:
+            msg.post_message_email(person_email, msg_text)
+        return None
+
+
+def card(card_file,vard=None):
+    with open(f'Cards/{card_file}') as fp:
+        text = fp.read()
+    
+    if vard:
+       t = Template(text) 
+       r= t.render(vard)
+
+       return json.loads(r)
+    else:
+        return json.loads(text)
 
 def create_webhook(url,resource):
     webhooks_api = f'{msg.base_url}/webhooks'
@@ -194,7 +236,7 @@ def get_webhook_urls():
             webhook_urls_res.append((webhook['targetUrl'],webhook['resource']))
     return webhook_urls_res
 
-ngrok_url="http://87780dcb5385.eu.ngrok.io"
+ngrok_url="http://faea97fe4531.eu.ngrok.io"
 ngrok_url_msg=[(ngrok_url,"messages")]
 ngrok_url_att=[(ngrok_url,"attachmentActions")]
 

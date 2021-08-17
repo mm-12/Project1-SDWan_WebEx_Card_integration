@@ -2,6 +2,7 @@ import json
 import requests
 from cardjson import card_input
 from cardjson import card_output
+from cardjson import project1_card_input
 
 
 # API Key is obtained from the Webex Teams developers website.
@@ -53,25 +54,21 @@ class Messenger():
         requests.post(post_message_url,headers=self.headers,data=json.dumps(data))
 
     # Post a card to a Webex Teams space (to roomID post an input card)
-    def post_message_card_input(self, room_id, message):
+    def post_message_card_input(self, room_id, message, card):
         data = {
             "roomId": room_id,
             "text": message,
-            "attachments": card_input
+            "attachments": card
             } 
         post_message_url = f'{self.base_url}/messages'
         requests.post(post_message_url,headers=self.headers,data=json.dumps(data))
 
     #Post a card to a Webex Teams space (to roomID post an output card/result card)
-    def post_message_card_output(self, room_id, message, command):
-        # Output card location of a command
-        card_output[0]['content']['body'][0]['columns'][1]['items'][1]['text']=command
-        # Output card location of an output to print
-        card_output[0]['content']['body'][1]['text']=message
+    def post_message_card_output(self, room_id, message, card):
         data = {
             "roomId": room_id,
             "text": message,
-            "attachments": card_output
+            "attachments": card
             } 
         post_message_url = f'{self.base_url}/messages'
         requests.post(post_message_url,headers=self.headers,data=json.dumps(data))

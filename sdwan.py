@@ -22,8 +22,7 @@ vmanage_password = os.environ.get("vmanage_password")
 
 base_url = f"https://{vmanage_host}:{vmanage_port}"
 
-api_logout_url = "/logout?nocache=1234"
-url_logout = base_url + api_logout_url
+url_logout = base_url + "/logout?nocache=1234"
 
 
 class Sdwan():
@@ -62,7 +61,7 @@ class Sdwan():
             jsessionid = cookies.split(";")
             return(jsessionid[0])
         except:
-            print("No valid JSESSION ID returned\n")
+            print("No valid JSESSION ID returned")
             exit()
     
     # Try to get token
@@ -95,7 +94,7 @@ class Sdwan():
 
 
         for item in items:
-            s=s+f"Username: {item.get('userName')} Group: {item.get('group')} Description: {item.get('description')}\n"
+            s=s+f"- Username: {item.get('userName')} \\n Group: {item.get('group')} \\n Description: {item.get('description')}\\n\\n"
     
         return s
 
@@ -114,7 +113,7 @@ class Sdwan():
 
 
         for item in items:
-            s=s+f"Device ID: {item.get('deviceId')}\n"
+            s=s+f"- Device ID: {item.get('deviceId')}\\n"
     
         return s    
 
@@ -134,7 +133,7 @@ class Sdwan():
 
 
         for item in items:
-            s=s+f"Controller: {item.get('deviceType')}\n"
+            s=s+f"- Controller: {item.get('deviceType')}\\n"
         
         return s 
 
@@ -152,7 +151,7 @@ class Sdwan():
             return s
 
         for item in items:
-            s=s+f"vEdge: {item.get('serialNumber')}\n"
+            s=s+f"vEdge: {item.get('serialNumber')}\\n"
         
         return s
 
@@ -170,7 +169,7 @@ class Sdwan():
             return s
 
         for item in items:
-            s=s+f"BFD session: {item}\n"
+            s=s+f"BFD session: {item}\\n"
         
         return s
 
@@ -188,7 +187,7 @@ class Sdwan():
             return s
 
         for item in items:
-            s=s+f"IPSEC session: {item}\n"
+            s=s+f"IPSEC session: {item}\\n"
         
         return s
 
