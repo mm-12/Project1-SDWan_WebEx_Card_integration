@@ -62,13 +62,13 @@ def index():
                     # Main menu card
                     if msg.message_text['button']=="new_network":
                         # Button new network
-                        msg.post_message_card_input(roomId,"Card for new network", card("01_card_newNetwork.json"))
+                        msg.post_message_card(roomId,"Card for new network", card("01_card_newNetwork.json"))
                     elif msg.message_text['button']=="show":
                         # Button show
-                        msg.post_message_card_input(roomId,"Card for show commands", card("02_card_show.json"))
+                        msg.post_message_card(roomId,"Card for show commands", card("02_card_show.json"))
                     elif msg.message_text['button']=="backup":
                         # Button backup
-                        msg.post_message_card_input(roomId,"Card for backup", card("03_card_backup.json"))
+                        msg.post_message_card(roomId,"Card for backup", card("03_card_backup.json"))
 
                 elif "newnetwork" in msg.message_text:
                     # New network card
@@ -78,7 +78,7 @@ def index():
                         vard={"var1": "Option 11 selected", "var2": "some output for option 11", \
                             "colour1": "Accent","colour2": "Good","colour3": "Dark"}
 
-                        msg.post_message_card_output(roomId,"option 11", card("10_card_output_generic.json",vard))
+                        msg.post_message_card(roomId,"option 11", card("10_card_output_generic.json",vard))
 
                         print("izabrana opcija 11")
                     elif msg.message_text['network']=="22":
@@ -87,7 +87,7 @@ def index():
                         vard={"var1": "Option 22 selected", "var2": "some output for option 22", \
                             "colour1": "Accent","colour2": "Good","colour3": "Dark"}
 
-                        msg.post_message_card_output(roomId,"option 22", card("10_card_output_generic.json",vard))
+                        msg.post_message_card(roomId,"option 22", card("10_card_output_generic.json",vard))
                         print("izabrana opcija 22")
                     else:
                         print("Network not selected!")
@@ -95,7 +95,7 @@ def index():
                         vard={"var1": "Nothing selected", "var2": "Please select at least one network", \
                             "colour1": "Attention","colour2": "Attention","colour3": "Attention"}
 
-                        msg.post_message_card_output(roomId,"Nothing selected", card("10_card_output_generic.json",vard))
+                        msg.post_message_card(roomId,"Nothing selected", card("10_card_output_generic.json",vard))
 
 
                 elif "show" in msg.message_text:
@@ -109,7 +109,7 @@ def index():
                         vard={"var1": "Show user option selected", "var2": sd.show_users(), \
                             "colour1": "Accent","colour2": "Good","colour3": "Dark"}
                         
-                        msg.post_message_card_output(roomId,sd.show_users(),card("10_card_output_generic.json",vard))
+                        msg.post_message_card(roomId,sd.show_users(),card("10_card_output_generic.json",vard))
 
                         print("izabrana opcija show users")
                         none_selected=False
@@ -120,7 +120,7 @@ def index():
                         vard={"var1": "Show devices option selected", "var2": sd.show_devices(), \
                             "colour1": "Accent","colour2": "Good","colour3": "Dark"}
 
-                        msg.post_message_card_output(roomId,sd.show_devices(),card("10_card_output_generic.json",vard))
+                        msg.post_message_card(roomId,sd.show_devices(),card("10_card_output_generic.json",vard))
 
                         print("izabrana opcija show devices")
                         none_selected=False
@@ -131,7 +131,7 @@ def index():
                         vard={"var1": "Show controllers option selected", "var2": sd.show_controllers(), \
                             "colour1": "Accent","colour2": "Good","colour3": "Dark"}
 
-                        msg.post_message_card_output(roomId,sd.show_controllers(),card("10_card_output_generic.json",vard))
+                        msg.post_message_card(roomId,sd.show_controllers(),card("10_card_output_generic.json",vard))
 
                         print("izabrana opcija show controllers")
                         none_selected=False
@@ -144,7 +144,7 @@ def index():
                         vard={"var1": "None selected", "var2": "None of the show options selected. Please select at least one show output!", \
                             "colour1": "Attention","colour2": "Attention","colour3": "Attention"}
 
-                        msg.post_message_card_output(roomId,sd.show_controllers(),card("10_card_output_generic.json",vard))
+                        msg.post_message_card(roomId,sd.show_controllers(),card("10_card_output_generic.json",vard))
 
 
 
@@ -155,7 +155,7 @@ def index():
                     vard={"var1": "Backup option selected", "var2": "Backup is starting!!!", \
                         "colour1": "Accent","colour2": "Good","colour3": "Dark"}
 
-                    msg.post_message_card_output(roomId,"backup",card("10_card_output_generic.json",vard))
+                    msg.post_message_card(roomId,"backup",card("10_card_output_generic.json",vard))
 
                     print("start backup")
                     
@@ -169,7 +169,7 @@ def index():
             
                 # If Hello is sent, show the cards
                 if "hello" in msg.message_text.lower():
-                    msg.post_message_card_input(roomId,"Card for main manu", card("00_card_menu.json"))
+                    msg.post_message_card(roomId,"Card for main manu", card("00_card_menu.json"))
                 else:
                     msg.post_message_roomId(roomId,"Type hello to start")           
         else:

@@ -53,8 +53,8 @@ class Messenger():
         post_message_url = f'{self.base_url}/messages'
         requests.post(post_message_url,headers=self.headers,data=json.dumps(data))
 
-    # Post a card to a Webex Teams space (to roomID post an input card)
-    def post_message_card_input(self, room_id, message, card):
+    # Post a card to a Webex Teams space (to roomID)
+    def post_message_card(self, room_id, message, card):
         data = {
             "roomId": room_id,
             "text": message,
@@ -63,12 +63,4 @@ class Messenger():
         post_message_url = f'{self.base_url}/messages'
         requests.post(post_message_url,headers=self.headers,data=json.dumps(data))
 
-    #Post a card to a Webex Teams space (to roomID post an output card/result card)
-    def post_message_card_output(self, room_id, message, card):
-        data = {
-            "roomId": room_id,
-            "text": message,
-            "attachments": card
-            } 
-        post_message_url = f'{self.base_url}/messages'
-        requests.post(post_message_url,headers=self.headers,data=json.dumps(data))
+    
