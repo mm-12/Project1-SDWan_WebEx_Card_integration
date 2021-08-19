@@ -26,12 +26,12 @@ class Messenger():
     # Retrieve a specific message posted by user -> str, using message_id
     def get_txt_message(self, message_id): 
         received_message_url = f'{self.base_url}/messages/{message_id}'
-        self.message_text = requests.get(received_message_url, headers=self.headers).json().get('text')
+        self.message_structure = requests.get(received_message_url, headers=self.headers).json().get('text')
 
     # Retrieve a specific card submitted by  user -> dict, using message_id
     def get_card_message(self, message_id):
         received_message_url = f'{self.base_url}/attachment/actions/{message_id}'
-        self.message_text =requests.get(received_message_url, headers=self.headers).json().get('inputs')
+        self.message_structure =requests.get(received_message_url, headers=self.headers).json().get('inputs')
       
     
     # POST A MESSAGE

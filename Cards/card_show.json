@@ -1,0 +1,88 @@
+[{
+	"contentType": "application/vnd.microsoft.card.adaptive",
+	"content":
+
+{
+    "type": "AdaptiveCard",
+    "version": "1.2",
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "body": [
+        {
+            "type": "ColumnSet",
+            "columns": [
+                {
+                    "type": "Column",
+                    "width": "auto",
+                    "items": [
+                        {
+                            "type": "Image",
+                            "url": "https://community.cisco.com/t5/image/serverpage/image-id/118223iB1C5F59EC782C05C?v=v2",
+                            "size": "Medium"
+                        }
+                    ]
+                },
+                {
+                    "type": "Column",
+                    "width": "stretch",
+                    "items": [
+                        {
+                            "type": "TextBlock",
+                            "text": "SD-WAN Demo",
+                            "wrap": true,
+                            "weight": "Bolder",
+                            "size": "Medium",
+                            "color": "Accent"
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "Show commnad options",
+                            "wrap": true,
+                            "color": "Good"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "Input.Toggle",
+            "title": "show users",
+            "id": "show_users"
+        },
+        {
+            "type": "Input.Toggle",
+            "title": "show devices",
+            "id": "show_devices"
+        },
+        {
+            "type": "Input.Toggle",
+            "title": "show controllers",
+            "id": "show_controllers"
+        },
+        {
+            "type": "ActionSet",
+            "actions": [
+                {
+                    "type": "Action.Submit",
+                    "title": "Submit",
+                    "style": "positive",
+                    "id": "222",
+                    "data": {
+                        "card_name": "show"
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Input.ChoiceSet",
+            "choices": [{
+                "title": "title",
+                "value": "pera"
+            }],
+            "placeholder": "Selected option",
+            "id": "show",
+            "value": "lala",
+            "isVisible": false
+        }
+    ]
+}
+}]

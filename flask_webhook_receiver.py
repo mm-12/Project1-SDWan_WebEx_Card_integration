@@ -20,142 +20,129 @@ def index():
         # Notification payload, received from XXXX webhook. Assuming there are all these fields below
         data = request.get_json()
                 
-        # Determine if POST came from SDWAN or WEBEX teams.
+        # Determine if POST came from SDWAN or WEBEX teams. So far 2 options possible data(webex) or xxxx present in body
         if "data" in data:
             #we got POST from Webex teams
             print("post from webex teams")
 
+            # Check if msg came from BOT itself and then ignore. 
             if msg.bot_id == data.get('data').get('personId'):
                 return 'Message from self ignored'
 
-            # Collect the roomId from the notification,
-            # so you know where to post the response
+            # Collect the roomId from the notification, so you know where to post the response
             roomId=data.get('data').get('roomId')
             print("Room ID: ",roomId)
             print("Person ID ",data.get('data').get('personId'))
             print("Raw msg: ",data.get('data'))
 
-            # Collect the message id from the notification, 
-            # so you can fetch the message content or card content
+            # Collect the message id from the notification, so you can fetch the message content or card content
             messageId=data.get('data').get('id')
             print("Message ID: ",messageId)
             
-            # Get the type of the received message.
-            msg_type=data.get('data').get('type')
+            # Get the type of the received message. So far 2 types possible: submit(card), None(text)
+            messageType=data.get('data').get('type')
+            print("MSG type: ",messageType)
             
-            # None for msg and submit for Card
-            print("MSG type: ",msg_type)
-            
-            # Get the content of the received message or card submitted.
-            if msg_type=="submit":
-                # message received is card message
+            # Check if there was a text message or card submitted in Webex. submit -> card, None -> text
+            if messageType=="submit":
+                # message received is a card message
                 msg.get_card_message(messageId)
-                print("This is the submit content got from the webhook: ",msg.message_text)
-                print("this is the type of the submit got from the webhook: ", type(msg.message_text))
+                print("This is the submit content of a Card that we got from the webhook: ",msg.message_structure)
+                print("this is the type of the submit got from the webhook: ", type(msg.message_structure))
                 
-                # need to check which button was pressed and based on that to show coresponding card
 
-                print("PRITISNUTO JE: ", msg.message_text)
-
-                
-                if "main" in msg.message_text:
+                # need to check in which Card which button was pressed and based on that to show coresponding card
+                if "main" in msg.message_structure:
                     # Main menu card
-                    if msg.message_text['button']=="new_network":
-                        # Button new network
-                        msg.post_message_card(roomId,"Card for new network", card("01_card_newNetwork.json"))
-                    elif msg.message_text['button']=="show":
-                        # Button show
-                        msg.post_message_card(roomId,"Card for show commands", card("02_card_show.json"))
-                    elif msg.message_text['button']=="backup":
-                        # Button backup
-                        msg.post_message_card(roomId,"Card for backup", card("03_card_backup.json"))
+                    
+                    #Define cardMessage, cardName, vard
+                    cardMessage="Card for " + msg.message_structure['button']
+                    cardName="card_" + msg.message_structure['button'] + ".json"
+                    
+                    vard = None
 
-                elif "newnetwork" in msg.message_text:
+                    msg.post_message_card(roomId,cardMessage, card(cardName, vard))
+
+                    print ("izabrana opcija/card: " + msg.message_structure['button'])
+
+                elif msg.message_structure["card_name"]=="newNetwork":
                     # New network card
-                    if msg.message_text['network']=="11":
-                        # option 11
+                    
+                    #Define cardName. cardMessage, vard, cardOptionTitle, cardOptionText latter
+                    cardName="card_output_generic.json"
+
+                    if msg.message_structure['network']=="":
+                        cardMessage="Nothing selected"
                         
-                        vard={"var1": "Option 11 selected", "var2": "some output for option 11", \
-                            "colour1": "Accent","colour2": "Good","colour3": "Dark"}
-
-                        msg.post_message_card(roomId,"option 11", card("10_card_output_generic.json",vard))
-
-                        print("izabrana opcija 11")
-                    elif msg.message_text['network']=="22":
-                        # option 22
-
-                        vard={"var1": "Option 22 selected", "var2": "some output for option 22", \
-                            "colour1": "Accent","colour2": "Good","colour3": "Dark"}
-
-                        msg.post_message_card(roomId,"option 22", card("10_card_output_generic.json",vard))
-                        print("izabrana opcija 22")
-                    else:
-                        print("Network not selected!")
+                        cardOptionTitle="Nothing selected"
+                        cardOptionText="Please select at least one network"
                         
-                        vard={"var1": "Nothing selected", "var2": "Please select at least one network", \
+                        vard={"var1": cardOptionTitle, "var2": cardOptionText, \
                             "colour1": "Attention","colour2": "Attention","colour3": "Attention"}
+                    else:
+                        cardMessage="Card for option " + msg.message_structure['network']
 
-                        msg.post_message_card(roomId,"Nothing selected", card("10_card_output_generic.json",vard))
+                        cardOptionTitle="Option " + msg.message_structure['network'] + " selected"
+                        cardOptionText="Some output for option " + msg.message_structure['network']
+                        
+                        vard={"var1": cardOptionTitle, "var2": cardOptionText, \
+                                "colour1": "Accent","colour2": "Good","colour3": "Dark"}
+                        
+                    msg.post_message_card(roomId,cardMessage, card(cardName,vard))
 
-
-                elif "show" in msg.message_text:
+                elif msg.message_structure["card_name"]=="show":
                     # Show card
                     sd = Sdwan()
+                    
                     none_selected=True
 
-                    if msg.message_text['show_users']=="true":
-                        # show user = True 
-
-                        vard={"var1": "Show user option selected", "var2": sd.show_users(), \
-                            "colour1": "Accent","colour2": "Good","colour3": "Dark"}
-                        
-                        msg.post_message_card(roomId,sd.show_users(),card("10_card_output_generic.json",vard))
-
-                        print("izabrana opcija show users")
-                        none_selected=False
+                    cardName="card_output_generic.json"
                     
-                    if msg.message_text['show_devices']=="true":
-                        # show devices = True
-
-                        vard={"var1": "Show devices option selected", "var2": sd.show_devices(), \
+                    for command, flag in msg.message_structure.items():
+                        if flag=="true":
+                            cardMessage=command
+                            cardOptionTitle=command + " option selected"
+                            cardOptionText=getattr(sd, command)()
+                            
+                            vard={"var1": cardOptionTitle, "var2": cardOptionText, \
                             "colour1": "Accent","colour2": "Good","colour3": "Dark"}
 
-                        msg.post_message_card(roomId,sd.show_devices(),card("10_card_output_generic.json",vard))
-
-                        print("izabrana opcija show devices")
-                        none_selected=False
-
-                    if msg.message_text['show_controllers']=="true":
-                        # show controllers = True
-
-                        vard={"var1": "Show controllers option selected", "var2": sd.show_controllers(), \
-                            "colour1": "Accent","colour2": "Good","colour3": "Dark"}
-
-                        msg.post_message_card(roomId,sd.show_controllers(),card("10_card_output_generic.json",vard))
-
-                        print("izabrana opcija show controllers")
-                        none_selected=False
+                            msg.post_message_card(roomId,cardMessage,card(cardName,vard))
+                            
+                            none_selected=False
+                    
                     
                     if none_selected:
                         # Nothing selected
 
                         print("Nothing selected")
 
-                        vard={"var1": "None selected", "var2": "None of the show options selected. Please select at least one show output!", \
+                        cardMessage="Nothing selected"
+                        
+                        cardOptionTitle="None selected"
+                        cardOptionText="None of the show options selected. Please select at least one show output!"
+
+                        vard={"var1": cardOptionTitle, "var2": cardOptionText, \
                             "colour1": "Attention","colour2": "Attention","colour3": "Attention"}
 
-                        msg.post_message_card(roomId,sd.show_controllers(),card("10_card_output_generic.json",vard))
+                        msg.post_message_card(roomId,cardMessage,card(cardName,vard))
+                    
+                    sd.logout()
 
 
-
-                elif "backup" in msg.message_text:
+                elif msg.message_structure["card_name"]=="backup":
                     # Backup card
                     
-                    
-                    vard={"var1": "Backup option selected", "var2": "Backup is starting!!!", \
+                    cardMessage="backup"
+                    cardName="card_output_generic.json"
+
+                    cardOptionTitle="Backup option selected"
+                    cardOptionText="Backup is starting!!!"
+
+                    vard={"var1": cardOptionTitle, "var2": cardOptionText, \
                         "colour1": "Accent","colour2": "Good","colour3": "Dark"}
 
-                    msg.post_message_card(roomId,"backup",card("10_card_output_generic.json",vard))
+                    msg.post_message_card(roomId,cardMessage,card(cardName,vard))
 
                     print("start backup")
                     
@@ -163,13 +150,13 @@ def index():
             else:
                 # message received is text message
                 msg.get_txt_message(messageId)
-                print("This is the msg content got from the webhook: ",msg.message_text)
-                print("this is the type of the msg got from the webhook: ", type(msg.message_text))
+                print("This is the msg content got from the webhook: ",msg.message_structure)
+                print("this is the type of the msg got from the webhook: ", type(msg.message_structure))
 
             
                 # If Hello is sent, show the cards
-                if "hello" in msg.message_text.lower():
-                    msg.post_message_card(roomId,"Card for main manu", card("00_card_menu.json"))
+                if "hello" in msg.message_structure.lower():
+                    msg.post_message_card(roomId,"Card for main manu", card("card_menu.json"))
                 else:
                     msg.post_message_roomId(roomId,"Type hello to start")           
         else:
