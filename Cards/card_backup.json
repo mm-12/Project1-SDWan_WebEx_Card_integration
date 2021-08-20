@@ -60,18 +60,7 @@
                         }
                     }
                 ]
-            },
-            {
-				"type": "Input.ChoiceSet",
-				"choices": [{
-					"title": "title",
-					"value": "pera"
-				}],
-				"placeholder": "Selected option",
-				"id": "backup",
-				"value": "lala",
-				"isVisible": false
-			}
+            }
         ]
     }
 }]

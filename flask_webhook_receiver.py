@@ -145,8 +145,18 @@ def index():
                     msg.post_message_card(roomId,cardMessage,card(cardName,vard))
 
                     print("start backup")
-                    
-                
+
+                elif msg.message_structure["card_name"]=="main":
+                    # Home/main menu button pressed
+
+                    cardMessage="Card for main manu"
+                    cardName="card_menu.json"
+
+                    vard=None
+
+                    msg.post_message_card(roomId,cardMessage,card(cardName,vard))
+
+                    print("back to main menu")
             else:
                 # message received is text message
                 msg.get_txt_message(messageId)
@@ -156,9 +166,14 @@ def index():
             
                 # If Hello is sent, show the cards
                 if "hello" in msg.message_structure.lower():
-                    msg.post_message_card(roomId,"Card for main manu", card("card_menu.json"))
+                    cardMessage="Card for main manu"
+                    cardName="card_menu.json"
+                    vard=None
+
+                    msg.post_message_card(roomId,cardMessage, card(cardName,vard))
                 else:
                     msg.post_message_roomId(roomId,"Type hello to start")           
+        
         else:
             #we got POST from SDWAN
             print("post sa SDWAN")

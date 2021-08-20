@@ -40,6 +40,26 @@
                                 "color": "{{ colour2 }}"
                             }
                         ]
+                    },
+                    {
+                        "type": "Column",
+                        "width": "auto",
+                        "items": [
+                            {
+                                "type": "ActionSet",
+                                "actions": [
+                                    {
+                                        "type": "Action.Submit",
+                                        "title": "Main menu",
+                                        "id": "0",
+										"data": {
+											"card_name": "main"
+										}
+                                    }
+                                ],
+                                "height": "stretch"
+                            }
+                        ]
                     }
                 ]
             },
