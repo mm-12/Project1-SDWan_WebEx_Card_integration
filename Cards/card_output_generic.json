@@ -50,7 +50,7 @@
                                 "actions": [
                                     {
                                         "type": "Action.Submit",
-                                        "title": "Main menu",
+                                        "title": "🏠",
                                         "id": "0",
 										"data": {
 											"card_name": "main"
